@@ -1,0 +1,154 @@
+/**
+ * Payment session credentials returned from the Quentli API
+ */
+export interface QuentliSession {
+  accessToken: string;
+  csrfToken: string;
+  expiresAt?: string;
+}
+
+/**
+ * Payment status values
+ */
+export type PaymentStatus = 'COMPLETE' | 'DECLINED' | 'CANCELED' | 'PENDING';
+
+/**
+ * Display mode for payment sessions
+ */
+export type DisplayMode = 'popup' | 'iframe' | 'redirect';
+
+/**
+ * Payment completion data
+ */
+export interface PaymentCompletionData {
+  status: PaymentStatus;
+  paymentSessionId?: string;
+  [key: string]: unknown;
+}
+
+/**
+ * Configuration options for Quentli instance
+ */
+export interface QuentliConfig {
+  /**
+   * Optional: Enable debug logging
+   */
+  debug?: boolean;
+}
+
+/**
+ * Base options shared across all display modes
+ */
+interface BasePaymentSessionOptions {
+  /**
+   * Payment session URL from Quentli API
+   */
+  url: string;
+
+  /**
+   * Payment session credentials
+   */
+  session: QuentliSession;
+
+  /**
+   * Callback invoked when payment is completed successfully
+   */
+  onComplete?: (data: PaymentCompletionData) => void;
+
+  /**
+   * Callback invoked when payment is canceled by the user
+   */
+  onCancel?: () => void;
+
+  /**
+   * Callback invoked when an error occurs
+   */
+  onError?: (error: Error) => void;
+}
+
+/**
+ * Options for popup display mode
+ */
+export interface PopupPaymentSessionOptions extends BasePaymentSessionOptions {
+  displayMode: 'popup';
+  /**
+   * Popup window width in pixels
+   * @default 500
+   */
+  width?: number;
+  /**
+   * Popup window height in pixels
+   * @default 700
+   */
+  height?: number;
+  /**
+   * Optional: Custom window name
+   */
+  windowName?: string;
+}
+
+/**
+ * Options for iframe display mode
+ */
+export interface IframePaymentSessionOptions extends BasePaymentSessionOptions {
+  displayMode: 'iframe';
+  /**
+   * Target element to append iframe to
+   */
+  target: HTMLElement;
+  /**
+   * Iframe width
+   * @default '100%'
+   */
+  width?: string;
+  /**
+   * Iframe height
+   * @default '600px'
+   */
+  height?: string;
+  /**
+   * Optional: Additional iframe CSS class
+   */
+  className?: string;
+  /**
+   * Optional: iframe allow attribute
+   * @default 'payment'
+   */
+  allow?: string;
+}
+
+/**
+ * Options for redirect display mode
+ */
+export interface RedirectPaymentSessionOptions {
+  displayMode: 'redirect';
+  /**
+   * Payment session URL from Quentli API
+   */
+  url: string;
+}
+
+/**
+ * Union type for all payment session options
+ */
+export type InitiatePaymentSessionOptions =
+  | PopupPaymentSessionOptions
+  | IframePaymentSessionOptions
+  | RedirectPaymentSessionOptions;
+
+/**
+ * Internal message types for postMessage communication
+ */
+export type QuentliMessageType = 'READY' | 'INIT' | 'PAYMENT_COMPLETED';
+
+/**
+ * Message structure for postMessage communication
+ */
+export interface QuentliMessage {
+  type: QuentliMessageType;
+  status?: PaymentStatus;
+  accessToken?: string;
+  csrfToken?: string;
+  [key: string]: unknown;
+}
+

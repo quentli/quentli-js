@@ -9,7 +9,7 @@ Official JavaScript SDK for Quentli Payment Sessions. This package provides a si
 - 🎯 **Framework Agnostic** - Works with vanilla JavaScript or any framework
 - 📦 **Zero Dependencies** - Lightweight and efficient
 - 🔧 **TypeScript Support** - Fully typed for excellent DX
-- 🛡️ **Origin Validation** - Built-in security checks
+- 🛡️ **Origin Validation** - Automatic security checks against payment session URL
 
 ## Installation
 
@@ -99,7 +99,6 @@ new Quentli(config?: QuentliConfig)
 
 | Option | Type | Description |
 |--------|------|-------------|
-| `allowedOrigins` | `string[]` | Optional: Allowed origins for postMessage validation |
 | `debug` | `boolean` | Optional: Enable debug logging |
 
 #### Methods
@@ -188,9 +187,13 @@ Best for most use cases. Opens checkout in a centered popup window.
 
 **Example:**
 ```typescript
-await quentli.openPopup({
+await quentli.initiatePaymentSession({
+  displayMode: 'popup',
   url: session.url,
-  session: session.session
+  session: session.session,
+  onComplete: (data) => console.log('Complete!', data),
+  onCancel: () => console.log('Canceled'),
+  onError: (error) => console.error('Error:', error)
 });
 ```
 
@@ -208,10 +211,14 @@ Embeds checkout directly in your page.
 
 **Example:**
 ```typescript
-await quentli.openIframe({
+await quentli.initiatePaymentSession({
+  displayMode: 'iframe',
   url: session.url,
   session: session.session,
-  target: document.getElementById('payment-container')
+  target: document.getElementById('payment-container'),
+  onComplete: (data) => console.log('Complete!', data),
+  onCancel: () => console.log('Canceled'),
+  onError: (error) => console.error('Error:', error)
 });
 ```
 
@@ -230,7 +237,10 @@ Redirects user to Quentli's hosted checkout page.
 
 **Example:**
 ```typescript
-quentli.redirect(session.url);
+quentli.initiatePaymentSession({
+  displayMode: 'redirect',
+  url: session.url
+});
 ```
 
 ## TypeScript Support
@@ -239,8 +249,9 @@ This package is written in TypeScript and includes full type definitions.
 
 ```typescript
 import type {
-  QuentliPayment,
-  QuentliPaymentConfig,
+  Quentli,
+  QuentliConfig,
+  InitiatePaymentSessionOptions,
   PaymentCompletionData,
   PaymentStatus
 } from '@quentli/js';
@@ -250,24 +261,11 @@ import type {
 
 The SDK implements several security measures:
 
-1. **Origin Validation** - Validates postMessage origins against allowlist
+1. **Origin Validation** - Automatically validates postMessage origins against the payment session URL origin
 2. **MessageChannel API** - Secure credential transfer without exposing to page context
 3. **CSRF Protection** - Validates CSRF tokens from backend
 
-### Custom Allowed Origins
-
-If you're using a custom domain or local development:
-
-```typescript
-const quentli = new QuentliPayment({
-  allowedOrigins: [
-    'https://checkout.quentli.com',
-    'https://custom-domain.com',
-    'http://localhost:3000' // For development
-  ],
-  // ... other config
-});
-```
+The SDK automatically extracts and validates the origin from the payment session URL you provide, ensuring that messages only come from the expected checkout domain.
 
 ## Examples
 
@@ -275,20 +273,13 @@ const quentli = new QuentliPayment({
 
 ```typescript
 import { useEffect, useRef } from 'react';
-import { QuentliPayment } from '@quentli/js';
+import { Quentli } from '@quentli/js';
 
 function CheckoutButton() {
-  const quentliRef = useRef<QuentliPayment | null>(null);
+  const quentliRef = useRef<Quentli | null>(null);
 
   useEffect(() => {
-    quentliRef.current = new QuentliPayment({
-      onComplete: (data) => {
-        console.log('Payment completed:', data);
-      },
-      onCancel: () => {
-        console.log('Payment canceled');
-      }
-    });
+    quentliRef.current = new Quentli();
 
     return () => {
       quentliRef.current?.destroy();
@@ -298,9 +289,19 @@ function CheckoutButton() {
   const handleCheckout = async () => {
     const session = await createPaymentSession();
     
-    await quentliRef.current?.openPopup({
+    await quentliRef.current?.initiatePaymentSession({
+      displayMode: 'popup',
       url: session.url,
-      session: session.session
+      session: session.session,
+      onComplete: (data) => {
+        console.log('Payment completed:', data);
+      },
+      onCancel: () => {
+        console.log('Payment canceled');
+      },
+      onError: (error) => {
+        console.error('Payment error:', error);
+      }
     });
   };
 
@@ -312,18 +313,14 @@ function CheckoutButton() {
 
 ```typescript
 import { onMounted, onUnmounted, ref } from 'vue';
-import { QuentliPayment } from '@quentli/js';
+import { Quentli } from '@quentli/js';
 
 export default {
   setup() {
-    const quentli = ref<QuentliPayment | null>(null);
+    const quentli = ref<Quentli | null>(null);
 
     onMounted(() => {
-      quentli.value = new QuentliPayment({
-        onComplete: (data) => {
-          console.log('Payment completed:', data);
-        }
-      });
+      quentli.value = new Quentli();
     });
 
     onUnmounted(() => {
@@ -332,9 +329,19 @@ export default {
 
     const handleCheckout = async () => {
       const session = await createPaymentSession();
-      await quentli.value?.openPopup({
+      await quentli.value?.initiatePaymentSession({
+        displayMode: 'popup',
         url: session.url,
-        session: session.session
+        session: session.session,
+        onComplete: (data) => {
+          console.log('Payment completed:', data);
+        },
+        onCancel: () => {
+          console.log('Payment canceled');
+        },
+        onError: (error) => {
+          console.error('Payment error:', error);
+        }
       });
     };
 

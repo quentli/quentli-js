@@ -1,0 +1,49 @@
+{
+  "name": "@quentli/js",
+  "version": "0.1.0",
+  "description": "Official JavaScript SDK for integrating Quentli on the web",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "packageManager": "pnpm@10.12.1",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "default": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "build": "tsup src/index.ts --format esm --dts",
+    "dev": "tsup src/index.ts --format esm --dts --watch",
+    "typecheck": "tsc --noEmit",
+    "prepublishOnly": "pnpm run build"
+  },
+  "keywords": [
+    "quentli",
+    "payments",
+    "checkout",
+    "payment-sessions",
+    "javascript",
+    "typescript"
+  ],
+  "author": "Quentli",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/quentli/quentli-js.git"
+  },
+  "bugs": {
+    "url": "https://github.com/quentli/quentli-js/issues"
+  },
+  "homepage": "https://github.com/quentli/quentli-js#readme",
+  "devDependencies": {
+    "tsup": "^8.0.1",
+    "typescript": "^5.3.3"
+  }
+}
