@@ -3,10 +3,14 @@ import type {
   DisplayPopupOptions,
   DisplayEmbeddedOptions,
   DisplayPageOptions,
+  SetupSessionDisplayPopupOptions,
+  SetupSessionDisplayEmbeddedOptions,
+  SetupSessionDisplayPageOptions,
   QuentliAuthSession,
   QuentliMessage,
   PaymentStatus,
   PaymentCompletionData,
+  PaymentMethodAddedData,
 } from "./types";
 import {
   calculatePopupPosition,
@@ -16,6 +20,15 @@ import {
   validateSession,
   validateTarget,
 } from "./utils";
+
+/**
+ * Base callbacks interface for sessions
+ */
+interface SessionCallbacks {
+  onComplete?: (data: any) => void;
+  onCancel?: () => void;
+  onError?: (error: Error) => void;
+}
 
 /**
  * PaymentSessions - Namespace class for payment session display methods
@@ -52,7 +65,11 @@ export class PaymentSessions {
     validateSession((options as any).session);
     
     this.quentli.cleanup();
-    return this.quentli.handlePopupInternal(options);
+    return this.quentli.initSession({
+      ...options,
+      sessionType: 'payment',
+      displayMode: 'popup',
+    });
   }
 
   /**
@@ -81,7 +98,11 @@ export class PaymentSessions {
     validateTarget((options as any).target);
     
     this.quentli.cleanup();
-    return this.quentli.handleIframeInternal(options);
+    return this.quentli.initSession({
+      ...options,
+      sessionType: 'payment',
+      displayMode: 'iframe',
+    });
   }
 
   /**
@@ -103,27 +124,136 @@ export class PaymentSessions {
     validateUrl((options as any).url);
     
     this.quentli.cleanup();
-    return this.quentli.handleRedirectInternal(options);
+    this.quentli.handleRedirectInternal({
+      ...options,
+      sessionType: 'payment',
+    });
   }
 }
 
 /**
- * Quentli - Core class for handling Quentli payment sessions
+ * SetupSessions - Namespace class for setup session display methods
  *
- * Manages the communication between merchant site and Quentli checkout
+ * Provides methods to display setup sessions (for saving payment methods) in different modes:
+ * - displayPopup: Opens setup in a popup window
+ * - displayEmbedded: Embeds setup in an iframe
+ * - displayPage: Redirects to setup page
+ */
+export class SetupSessions {
+  constructor(private quentli: Quentli) {}
+
+  /**
+   * Display setup session in a popup window
+   *
+   * @example
+   * ```typescript
+   * await quentli.setupSessions.displayPopup({
+   *   url: setupUrl,
+   *   session: { accessToken: '...', csrfToken: '...' },
+   *   onPaymentMethodAdded: (data) => console.log('Payment method added:', data),
+   *   width: 500,
+   *   height: 700
+   * });
+   * ```
+   */
+  async displayPopup(options: SetupSessionDisplayPopupOptions): Promise<void> {
+    // Validate required arguments for JavaScript users
+    if (!options || typeof options !== 'object') {
+      throw new Error('options is required and must be an object');
+    }
+    
+    validateUrl((options as any).url);
+    validateSession((options as any).session);
+    
+    this.quentli.cleanup();
+    return this.quentli.initSession({
+      ...options,
+      sessionType: 'setup',
+      displayMode: 'popup',
+    });
+  }
+
+  /**
+   * Display setup session embedded in an iframe
+   *
+   * @example
+   * ```typescript
+   * const iframe = await quentli.setupSessions.displayEmbedded({
+   *   url: setupUrl,
+   *   session: { accessToken: '...', csrfToken: '...' },
+   *   target: document.getElementById('setup-container'),
+   *   onPaymentMethodAdded: (data) => console.log('Payment method added:', data)
+   * });
+   * ```
+   */
+  async displayEmbedded(
+    options: SetupSessionDisplayEmbeddedOptions
+  ): Promise<HTMLIFrameElement> {
+    // Validate required arguments for JavaScript users
+    if (!options || typeof options !== 'object') {
+      throw new Error('options is required and must be an object');
+    }
+    
+    validateUrl((options as any).url);
+    validateSession((options as any).session);
+    validateTarget((options as any).target);
+    
+    this.quentli.cleanup();
+    return this.quentli.initSession({
+      ...options,
+      sessionType: 'setup',
+      displayMode: 'iframe',
+    });
+  }
+
+  /**
+   * Redirect to setup session page
+   *
+   * @example
+   * ```typescript
+   * quentli.setupSessions.displayPage({
+   *   url: setupUrl
+   * });
+   * ```
+   */
+  displayPage(options: SetupSessionDisplayPageOptions): void {
+    // Validate required arguments for JavaScript users
+    if (!options || typeof options !== 'object') {
+      throw new Error('options is required and must be an object');
+    }
+    
+    validateUrl((options as any).url);
+    
+    this.quentli.cleanup();
+    this.quentli.handleRedirectInternal({
+      ...options,
+      sessionType: 'setup',
+    });
+  }
+}
+
+/**
+ * Quentli - Core class for handling Quentli payment and setup sessions
+ *
+ * Manages the communication between merchant site and Quentli checkout/setup pages
  * using MessageChannel API for secure credential transfer.
  *
  * @example
  * ```typescript
  * const quentli = new Quentli();
  *
- * // New API (recommended)
+ * // Payment sessions
  * await quentli.paymentSessions.displayPopup({
  *   url: paymentUrl,
  *   session: { accessToken: '...', csrfToken: '...' },
  *   onComplete: (data) => console.log('Payment completed:', data),
- *   onCancel: () => console.log('Payment canceled'),
- *   onError: (error) => console.error('Error:', error)
+ * });
+ *
+ * // Setup sessions
+ * await quentli.setupSessions.displayPopup({
+ *   url: setupUrl,
+ *   session: { accessToken: '...', csrfToken: '...' },
+ *   onPaymentMethodAdded: (data) => console.log('Payment method added:', data),
  * });
  * ```
  */
@@ -138,10 +268,13 @@ export class Quentli {
   private logger: Logger;
   private isDestroyed = false;
   private _paymentSessions: PaymentSessions;
+  private _setupSessions: SetupSessions;
+  private sessionType: 'payment' | 'setup' | null = null;
 
   constructor(config: QuentliConfig = {}) {
     this.logger = new Logger(config.debug, "[Quentli]");
     this._paymentSessions = new PaymentSessions(this);
+    this._setupSessions = new SetupSessions(this);
     this.logger.log("Quentli initialized");
   }
 
@@ -163,13 +296,77 @@ export class Quentli {
   }
 
   /**
+   * Access setup session display methods
+   *
+   * @example
+   * ```typescript
+   * quentli.setupSessions.displayPopup({ ... })
+   * quentli.setupSessions.displayEmbedded({ ... })
+   * quentli.setupSessions.displayPage({ ... })
+   * ```
+   */
+  get setupSessions(): SetupSessions {
+    if (this.isDestroyed) {
+      throw new Error("Quentli instance has been destroyed");
+    }
+    return this._setupSessions;
+  }
+
+  /**
+   * Initialize a session (payment or setup)
+   * @internal
+   */
+  async initSession(options: any): Promise<any> {
+    if (this.isDestroyed) {
+      throw new Error("Quentli instance has been destroyed");
+    }
+
+    this.sessionType = options.sessionType;
+    const sessionName = this.sessionType === 'payment' ? 'payment' : 'setup';
+    this.logger.log(`Initiating ${sessionName} session in ${options.displayMode} mode`);
+
+    // Extract and store expected origin from the URL
+    try {
+      const urlObj = new URL(options.url);
+      this.expectedOrigin = urlObj.origin;
+      this.logger.log("Expected origin set to:", this.expectedOrigin);
+    } catch (error) {
+      const err = new Error("Invalid URL provided");
+      this.logger.error("Failed to parse URL:", error);
+      options.onError?.(err);
+      throw err;
+    }
+
+    // Store session for later use
+    this.authSession = options.session;
+
+    // Prepare callbacks for this session
+    const callbacks: SessionCallbacks = {
+      onComplete: options.onComplete || options.onPaymentMethodAdded,
+      onCancel: options.onCancel,
+      onError: options.onError,
+    };
+
+    // Set up message listener with callbacks
+    this.setupMessageListener(callbacks);
+
+    // Handle based on display mode
+    switch (options.displayMode) {
+      case 'popup':
+        return this.handlePopup(options, callbacks);
+      case 'iframe':
+        return this.handleIframe(options, callbacks);
+      case 'redirect':
+        return this.handleRedirect(options);
+      default:
+        throw new Error(`Unknown display mode: ${options.displayMode}`);
+    }
+  }
+
+  /**
    * Set up the global message listener for postMessage events
    */
-  private setupMessageListener(callbacks: {
-    onComplete?: (data: PaymentCompletionData) => void;
-    onCancel?: () => void;
-    onError?: (error: Error) => void;
-  }): void {
+  private setupMessageListener(callbacks: SessionCallbacks): void {
     this.messageHandler = (event: MessageEvent) => {
       // Validate origin matches the expected checkout URL origin
       if (this.expectedOrigin && event.origin !== this.expectedOrigin) {
@@ -193,7 +390,14 @@ export class Quentli {
           this.handleReady(event, callbacks);
           break;
         case "PAYMENT_COMPLETED":
-          this.handlePaymentCompleted(event, callbacks);
+          if (this.sessionType === 'payment') {
+            this.handleCompletion(event, callbacks);
+          }
+          break;
+        case "PAYMENT_METHOD_ADDED":
+          if (this.sessionType === 'setup') {
+            this.handleCompletion(event, callbacks);
+          }
           break;
         default:
           this.logger.warn("Unknown message type:", message.type);
@@ -204,16 +408,12 @@ export class Quentli {
   }
 
   /**
-   * Handle READY message from checkout
+   * Handle READY message from checkout/setup page
    * Initiates the secure credential transfer via MessageChannel
    */
   private handleReady(
     event: MessageEvent,
-    callbacks: {
-      onComplete?: (data: PaymentCompletionData) => void;
-      onCancel?: () => void;
-      onError?: (error: Error) => void;
-    }
+    callbacks: SessionCallbacks
   ): void {
     this.logger.log("Handling READY event");
 
@@ -238,12 +438,14 @@ export class Quentli {
         const message = e.data as QuentliMessage;
         this.logger.log("Received message on MessageChannel:", message.type);
 
-        if (message.type === "PAYMENT_COMPLETED") {
-          this.handlePaymentCompleted(e, callbacks);
+        if (message.type === "PAYMENT_COMPLETED" && this.sessionType === 'payment') {
+          this.handleCompletion(e, callbacks);
+        } else if (message.type === "PAYMENT_METHOD_ADDED" && this.sessionType === 'setup') {
+          this.handleCompletion(e, callbacks);
         }
       };
 
-      // Send credentials and transfer port2 to the payment window
+      // Send credentials and transfer port2 to the payment/setup window
       targetWindow.postMessage(
         {
           type: "INIT",
@@ -260,152 +462,66 @@ export class Quentli {
       callbacks.onError?.(
         error instanceof Error
           ? error
-          : new Error("Failed to initialize payment session")
+          : new Error("Failed to initialize session")
       );
     }
   }
 
   /**
-   * Handle PAYMENT_COMPLETED message
+   * Handle completion message (PAYMENT_COMPLETED or PAYMENT_METHOD_ADDED)
    */
-  private handlePaymentCompleted(
+  private handleCompletion(
     event: MessageEvent,
-    callbacks: {
-      onComplete?: (data: PaymentCompletionData) => void;
-      onCancel?: () => void;
-      onError?: (error: Error) => void;
-    }
+    callbacks: SessionCallbacks
   ): void {
     const message = event.data as QuentliMessage;
-    this.logger.log("Payment completed with status:", message.status);
+    
+    if (this.sessionType === 'payment') {
+      this.logger.log("Payment completed with status:", message.status);
+      const status = message.status as PaymentStatus;
 
-    const status = message.status as PaymentStatus;
-
-    if (status === "COMPLETE") {
-      if (!callbacks.onComplete) {
-        this.logger.log("No onComplete callback provided");
+      if (status === "COMPLETE") {
+        if (!callbacks.onComplete) {
+          this.logger.log("No onComplete callback provided");
+        }
+        callbacks.onComplete?.({
+          status,
+          paymentSessionId: message.paymentSessionId as string | undefined,
+          ...message,
+        } as PaymentCompletionData);
+        
+        // Clean up all resources
+        this.cleanup();
+        
+      } else if (status === "CANCELED") {
+        callbacks.onCancel?.();
+        
+        // Clean up all resources
+        this.cleanup();
       }
+    } else if (this.sessionType === 'setup') {
+      this.logger.log("Payment method added:", message.paymentMethod);
+      
+      if (!callbacks.onComplete) {
+        this.logger.log("No onPaymentMethodAdded callback provided");
+      }
+      
       callbacks.onComplete?.({
-        status,
-        paymentSessionId: message.paymentSessionId as string | undefined,
+        paymentMethod: message.paymentMethod,
         ...message,
-      });
-      
-      // Clean up all resources
-      this.cleanup();
-      
-    } else if (status === "CANCELED") {
-      callbacks.onCancel?.();
+      } as PaymentMethodAddedData);
       
       // Clean up all resources
       this.cleanup();
     }
-  }
-
-
-  /**
-   * @internal
-   * Internal handler for popup display - called from PaymentSessions
-   */
-  async handlePopupInternal(options: DisplayPopupOptions): Promise<void> {
-    if (this.isDestroyed) {
-      throw new Error("Quentli instance has been destroyed");
-    }
-
-    this.logger.log("Initiating popup payment session");
-
-    // Extract and store expected origin from the payment URL
-    try {
-      const urlObj = new URL(options.url);
-      this.expectedOrigin = urlObj.origin;
-      this.logger.log("Expected origin set to:", this.expectedOrigin);
-    } catch (error) {
-      const err = new Error("Invalid payment URL provided");
-      this.logger.error("Failed to parse URL:", error);
-      options.onError?.(err);
-      throw err;
-    }
-
-    // Prepare callbacks for this session
-    const callbacks = {
-      onComplete: options.onComplete,
-      onCancel: options.onCancel,
-      onError: options.onError,
-    };
-
-    // Set up message listener with callbacks
-    this.setupMessageListener(callbacks);
-
-    // Store session for later use
-    this.authSession = options.session;
-
-    return this.handlePopup(options, callbacks);
-  }
-
-  /**
-   * @internal
-   * Internal handler for iframe display - called from PaymentSessions
-   */
-  async handleIframeInternal(
-    options: DisplayEmbeddedOptions
-  ): Promise<HTMLIFrameElement> {
-    if (this.isDestroyed) {
-      throw new Error("Quentli instance has been destroyed");
-    }
-
-    this.logger.log("Initiating embedded payment session");
-
-    // Extract and store expected origin from the payment URL
-    try {
-      const urlObj = new URL(options.url);
-      this.expectedOrigin = urlObj.origin;
-      this.logger.log("Expected origin set to:", this.expectedOrigin);
-    } catch (error) {
-      const err = new Error("Invalid payment URL provided");
-      this.logger.error("Failed to parse URL:", error);
-      options.onError?.(err);
-      throw err;
-    }
-
-    // Prepare callbacks for this session
-    const callbacks = {
-      onComplete: options.onComplete,
-      onCancel: options.onCancel,
-      onError: options.onError,
-    };
-
-    // Set up message listener with callbacks
-    this.setupMessageListener(callbacks);
-
-    // Store session for later use
-    this.authSession = options.session;
-
-    return this.handleIframe(options, callbacks);
-  }
-
-  /**
-   * @internal
-   * Internal handler for redirect display - called from PaymentSessions
-   */
-  handleRedirectInternal(options: DisplayPageOptions): void {
-    if (this.isDestroyed) {
-      throw new Error("Quentli instance has been destroyed");
-    }
-
-    this.logger.log("Redirecting to payment page");
-    return this.handleRedirect(options);
   }
 
   /**
    * Handle popup display mode
    */
   private async handlePopup(
-    options: DisplayPopupOptions,
-    callbacks: {
-      onComplete?: (data: PaymentCompletionData) => void;
-      onCancel?: () => void;
-      onError?: (error: Error) => void;
-    }
+    options: any,
+    callbacks: SessionCallbacks
   ): Promise<void> {
     const width = options.width || 500;
     const height = options.height || 700;
@@ -415,7 +531,7 @@ export class Quentli {
     try {
       this.popupWindow = window.open(
         options.url,
-        options.windowName || "quentli_payment_session",
+        options.windowName || `quentli_${this.sessionType}_session`,
         features
       );
 
@@ -450,12 +566,8 @@ export class Quentli {
    * Handle iframe display mode
    */
   private async handleIframe(
-    options: DisplayEmbeddedOptions,
-    callbacks: {
-      onComplete?: (data: PaymentCompletionData) => void;
-      onCancel?: () => void;
-      onError?: (error: Error) => void;
-    }
+    options: any,
+    callbacks: SessionCallbacks
   ): Promise<HTMLIFrameElement> {
     try {
       const iframe = document.createElement("iframe");
@@ -496,11 +608,22 @@ export class Quentli {
   /**
    * Handle redirect display mode
    */
-  private handleRedirect(
-    options: DisplayPageOptions
-  ): void {
+  private handleRedirect(options: any): void {
     this.logger.log("Redirecting to:", options.url);
     window.location.href = options.url;
+  }
+
+  /**
+   * @internal
+   * Internal handler for redirect display - called from PaymentSessions and SetupSessions
+   */
+  handleRedirectInternal(options: any): void {
+    if (this.isDestroyed) {
+      throw new Error("Quentli instance has been destroyed");
+    }
+
+    this.logger.log("Redirecting to page");
+    return this.handleRedirect(options);
   }
 
   /**
@@ -544,6 +667,9 @@ export class Quentli {
 
     // Clear expected origin
     this.expectedOrigin = null;
+
+    // Clear session type
+    this.sessionType = null;
   }
 
   /**

@@ -10,7 +10,6 @@ Official JavaScript SDK for Quentli Payment Sessions. Secure and simple payment 
 
 ## Features
 
-- Secure credential transfer using MessageChannel API
 - Multiple display modes: popup, iframe, and redirect
 - Framework agnostic - works with any JavaScript framework
 - Zero dependencies
@@ -192,14 +191,6 @@ import type {
   PaymentStatus
 } from '@quentli/js';
 ```
-
-## Security
-
-- **Origin Validation** - Validates postMessage origins against payment URL
-- **MessageChannel API** - Secure credential transfer
-- **CSRF Protection** - Token validation
-
-The SDK automatically extracts the origin from your payment URL and validates all messages against it.
 
 ## Backend Integration
 

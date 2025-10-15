@@ -27,6 +27,22 @@ export interface PaymentCompletionData {
 }
 
 /**
+ * Payment method data
+ */
+export interface PaymentMethodData {
+  id: string;
+  type: string;
+}
+
+/**
+ * Payment method added data
+ */
+export interface PaymentMethodAddedData {
+  paymentMethod: PaymentMethodData;
+  [key: string]: unknown;
+}
+
+/**
  * Configuration options for Quentli instance
  */
 export interface QuentliConfig {
@@ -126,9 +142,98 @@ export interface DisplayPageOptions {
 }
 
 /**
+ * Base options shared across setup session display modes that need callbacks
+ */
+interface BaseSetupSessionOptions {
+  /**
+   * Setup session URL from Quentli API
+   */
+  url: string;
+
+  /**
+   * Setup session credentials
+   */
+  session: QuentliAuthSession;
+
+  /**
+   * Callback invoked when payment method is added successfully
+   */
+  onPaymentMethodAdded?: (data: PaymentMethodAddedData) => void;
+
+  /**
+   * Callback invoked when setup is canceled by the user
+   */
+  onCancel?: () => void;
+
+  /**
+   * Callback invoked when an error occurs
+   */
+  onError?: (error: Error) => void;
+}
+
+/**
+ * Options for setup session displayPopup method
+ */
+export interface SetupSessionDisplayPopupOptions extends BaseSetupSessionOptions {
+  /**
+   * Popup window width in pixels
+   * @default 500
+   */
+  width?: number;
+  /**
+   * Popup window height in pixels
+   * @default 700
+   */
+  height?: number;
+  /**
+   * Optional: Custom window name
+   */
+  windowName?: string;
+}
+
+/**
+ * Options for setup session displayEmbedded method
+ */
+export interface SetupSessionDisplayEmbeddedOptions extends BaseSetupSessionOptions {
+  /**
+   * Target element to append iframe to
+   */
+  target: HTMLElement;
+  /**
+   * Iframe width
+   * @default '100%'
+   */
+  width?: string;
+  /**
+   * Iframe height
+   * @default '600px'
+   */
+  height?: string;
+  /**
+   * Optional: Additional iframe CSS class
+   */
+  className?: string;
+  /**
+   * Optional: iframe allow attribute
+   * @default 'payment'
+   */
+  allow?: string;
+}
+
+/**
+ * Options for setup session displayPage method
+ */
+export interface SetupSessionDisplayPageOptions {
+  /**
+   * Setup session URL from Quentli API
+   */
+  url: string;
+}
+
+/**
  * Internal message types for postMessage communication
  */
-export type QuentliMessageType = "READY" | "INIT" | "PAYMENT_COMPLETED";
+export type QuentliMessageType = "READY" | "INIT" | "PAYMENT_COMPLETED" | "PAYMENT_METHOD_ADDED";
 
 /**
  * Message structure for postMessage communication
@@ -138,5 +243,6 @@ export interface QuentliMessage {
   status?: PaymentStatus;
   accessToken?: string;
   csrfToken?: string;
+  paymentMethod?: PaymentMethodData;
   [key: string]: unknown;
 }

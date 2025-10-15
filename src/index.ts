@@ -8,7 +8,7 @@
  * @packageDocumentation
  */
 
-export { Quentli, PaymentSessions } from './Quentli';
+export { Quentli, PaymentSessions, SetupSessions } from './Quentli';
 
 export type {
   QuentliConfig,
@@ -16,9 +16,14 @@ export type {
   PaymentStatus,
   DisplayMode,
   PaymentCompletionData,
+  PaymentMethodData,
+  PaymentMethodAddedData,
   DisplayPopupOptions,
   DisplayEmbeddedOptions,
   DisplayPageOptions,
+  SetupSessionDisplayPopupOptions,
+  SetupSessionDisplayEmbeddedOptions,
+  SetupSessionDisplayPageOptions,
   QuentliMessageType,
   QuentliMessage,
 } from './types';
