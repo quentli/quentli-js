@@ -58,3 +58,69 @@ export class Logger {
   }
 }
 
+/**
+ * Validation utilities for runtime argument checking
+ */
+
+/**
+ * Validate that a URL string is provided and valid
+ */
+export function validateUrl(url: unknown, paramName: string = 'url'): string {
+  if (!url || typeof url !== 'string') {
+    throw new Error(`${paramName} is required and must be a string`);
+  }
+  
+  if (url.trim().length === 0) {
+    throw new Error(`${paramName} cannot be empty`);
+  }
+
+  // Validate URL format
+  try {
+    new URL(url);
+  } catch {
+    throw new Error(`${paramName} must be a valid URL`);
+  }
+
+  return url;
+}
+
+/**
+ * Validate that session credentials are provided
+ */
+export function validateSession(session: unknown): void {
+  if (!session || typeof session !== 'object') {
+    throw new Error('session is required and must be an object');
+  }
+
+  const sess = session as Record<string, unknown>;
+
+  if (!sess.accessToken || typeof sess.accessToken !== 'string') {
+    throw new Error('session.accessToken is required and must be a string');
+  }
+
+  if (sess.accessToken.trim().length === 0) {
+    throw new Error('session.accessToken cannot be empty');
+  }
+
+  if (!sess.csrfToken || typeof sess.csrfToken !== 'string') {
+    throw new Error('session.csrfToken is required and must be a string');
+  }
+
+  if (sess.csrfToken.trim().length === 0) {
+    throw new Error('session.csrfToken cannot be empty');
+  }
+}
+
+/**
+ * Validate that target element is provided and is an HTMLElement
+ */
+export function validateTarget(target: unknown): void {
+  if (!target) {
+    throw new Error('target is required');
+  }
+
+  if (typeof HTMLElement !== 'undefined' && !(target instanceof HTMLElement)) {
+    throw new Error('target must be an HTMLElement');
+  }
+}
+

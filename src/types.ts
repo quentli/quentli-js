@@ -126,44 +126,6 @@ export interface DisplayPageOptions {
 }
 
 /**
- * @deprecated Use DisplayPopupOptions, DisplayEmbeddedOptions, or DisplayPageOptions instead
- */
-export interface PopupPaymentSessionOptions extends BasePaymentSessionOptions {
-  displayMode: "popup";
-  width?: number;
-  height?: number;
-  windowName?: string;
-}
-
-/**
- * @deprecated Use DisplayEmbeddedOptions instead
- */
-export interface IframePaymentSessionOptions extends BasePaymentSessionOptions {
-  displayMode: "iframe";
-  target: HTMLElement;
-  width?: string;
-  height?: string;
-  className?: string;
-  allow?: string;
-}
-
-/**
- * @deprecated Use DisplayPageOptions instead
- */
-export interface RedirectPaymentSessionOptions {
-  displayMode: "redirect";
-  url: string;
-}
-
-/**
- * @deprecated Use the specific methods in paymentSessions namespace instead
- */
-export type InitiatePaymentSessionOptions =
-  | PopupPaymentSessionOptions
-  | IframePaymentSessionOptions
-  | RedirectPaymentSessionOptions;
-
-/**
  * Internal message types for postMessage communication
  */
 export type QuentliMessageType = "READY" | "INIT" | "PAYMENT_COMPLETED";

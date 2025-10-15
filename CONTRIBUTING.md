@@ -61,26 +61,39 @@ npm run typecheck
 
 ## Commit Guidelines
 
-We follow conventional commits:
+We use [Conventional Commits](https://www.conventionalcommits.org/) with [semantic-release](https://semantic-release.gitbook.io/) for automated versioning and publishing.
 
-- `feat:` - New features
-- `fix:` - Bug fixes
-- `docs:` - Documentation changes
-- `refactor:` - Code refactoring
-- `test:` - Adding or updating tests
-- `chore:` - Maintenance tasks
+**Your commit messages determine the version bump:**
+
+- `feat:` - New features (triggers MINOR version bump: 0.1.0 → 0.2.0)
+- `fix:` - Bug fixes (triggers PATCH version bump: 0.1.0 → 0.1.1)
+- `docs:` - Documentation changes (no version bump)
+- `refactor:` - Code refactoring (no version bump)
+- `test:` - Adding or updating tests (no version bump)
+- `chore:` - Maintenance tasks (no version bump)
+- `perf:` - Performance improvements (triggers PATCH version bump)
+
+**Breaking changes** (triggers MAJOR version bump: 0.1.0 → 1.0.0):
+```
+feat!: remove deprecated displayModal method
+
+BREAKING CHANGE: displayModal has been removed, use displayPopup instead
+```
 
 Examples:
 ```
 feat: add support for custom iframe styling
 fix: handle popup blocked by browser
 docs: update README with new examples
+perf: optimize message channel cleanup
 ```
+
+**Important:** Versioning is automatically managed by semantic-release. Do not manually update the version in `package.json` - it intentionally stays at `0.0.0-development` to indicate it's managed by semantic-release. See the [semantic-release FAQ](https://semantic-release.gitbook.io/semantic-release/support/faq) for details.
 
 ## Pull Request Process
 
 1. **Update documentation** if you're adding/changing APIs
-2. **Update CHANGELOG.md** with your changes
+2. **Use conventional commit messages** (see above)
 3. **Ensure all checks pass**:
    - TypeScript compiles without errors
    - Build succeeds
@@ -89,6 +102,15 @@ docs: update README with new examples
    - How does it solve it?
    - Any breaking changes?
 5. **Wait for review** from maintainers
+
+Once your PR is merged to `main`, semantic-release will automatically:
+- Analyze your commits to determine the version bump
+- Generate release notes
+- Publish to npm with the new version
+- Create a GitHub release with detailed notes
+- Create a git tag for the release
+
+All release notes are published on the [GitHub Releases page](https://github.com/quentli/quentli-js/releases).
 
 ## Feature Requests
 
