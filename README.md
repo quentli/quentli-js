@@ -1,5 +1,11 @@
 # @quentli/js
 
+[![npm version](https://img.shields.io/npm/v/@quentli/js.svg)](https://www.npmjs.com/package/@quentli/js)
+[![npm downloads](https://img.shields.io/npm/dm/@quentli/js.svg)](https://www.npmjs.com/package/@quentli/js)
+[![CI](https://github.com/quentli/quentli-js/actions/workflows/ci.yml/badge.svg)](https://github.com/quentli/quentli-js/actions/workflows/ci.yml)
+[![Release](https://github.com/quentli/quentli-js/actions/workflows/release.yml/badge.svg)](https://github.com/quentli/quentli-js/actions/workflows/release.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+
 Official JavaScript SDK for Quentli Payment Sessions. Secure and simple payment integration for web applications.
 
 ## Features
@@ -233,6 +239,8 @@ This project uses [semantic-release](https://semantic-release.gitbook.io/) for a
 
 ## Links
 
-- [Documentation](https://docs.quentli.com)
-- [GitHub Issues](https://github.com/quentli/quentli-js/issues)
-- [Support](mailto:soporte@quentli.com)
+- 📦 [npm Package](https://www.npmjs.com/package/@quentli/js)
+- 📖 [Documentation](https://docs.quentli.com)
+- 🔄 [Changelog](https://github.com/quentli/quentli-js/releases)
+- 🐛 [Report Issues](https://github.com/quentli/quentli-js/issues)
+- 💬 [Support](mailto:soporte@quentli.com)
