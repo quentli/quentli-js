@@ -12,6 +12,9 @@ import {
   calculatePopupPosition,
   generateWindowFeatures,
   Logger,
+  validateUrl,
+  validateSession,
+  validateTarget,
 } from "./utils";
 
 /**
@@ -40,6 +43,14 @@ export class PaymentSessions {
    * ```
    */
   async displayPopup(options: DisplayPopupOptions): Promise<void> {
+    // Validate required arguments for JavaScript users
+    if (!options || typeof options !== 'object') {
+      throw new Error('options is required and must be an object');
+    }
+    
+    validateUrl((options as any).url);
+    validateSession((options as any).session);
+    
     this.quentli.cleanup();
     return this.quentli.handlePopupInternal(options);
   }
@@ -60,6 +71,15 @@ export class PaymentSessions {
   async displayEmbedded(
     options: DisplayEmbeddedOptions
   ): Promise<HTMLIFrameElement> {
+    // Validate required arguments for JavaScript users
+    if (!options || typeof options !== 'object') {
+      throw new Error('options is required and must be an object');
+    }
+    
+    validateUrl((options as any).url);
+    validateSession((options as any).session);
+    validateTarget((options as any).target);
+    
     this.quentli.cleanup();
     return this.quentli.handleIframeInternal(options);
   }
@@ -75,6 +95,13 @@ export class PaymentSessions {
    * ```
    */
   displayPage(options: DisplayPageOptions): void {
+    // Validate required arguments for JavaScript users
+    if (!options || typeof options !== 'object') {
+      throw new Error('options is required and must be an object');
+    }
+    
+    validateUrl((options as any).url);
+    
     this.quentli.cleanup();
     return this.quentli.handleRedirectInternal(options);
   }
@@ -444,7 +471,11 @@ export class Quentli {
 
       // Remove all existing children from target
       while (options.target.firstChild) {
-        options.target.removeChild(options.target.firstChild);
+        try {
+          options.target.removeChild(options.target.firstChild);
+        } catch (error) {
+          this.logger.error("Error removing iframe child:", error);
+        }
       }
 
       options.target.appendChild(iframe);
