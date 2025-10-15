@@ -1,6 +1,6 @@
 {
   "name": "@quentli/js",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Official JavaScript SDK for integrating Quentli on the web",
   "type": "module",
   "main": "./dist/index.js",
