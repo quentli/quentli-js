@@ -1,7 +1,7 @@
 /**
  * Payment session credentials returned from the Quentli API
  */
-export interface QuentliSession {
+export interface QuentliAuthSession {
   accessToken: string;
   csrfToken: string;
   expiresAt?: string;
@@ -10,12 +10,12 @@ export interface QuentliSession {
 /**
  * Payment status values
  */
-export type PaymentStatus = 'COMPLETE' | 'DECLINED' | 'CANCELED' | 'PENDING';
+export type PaymentStatus = "COMPLETE" | "CANCELED";
 
 /**
  * Display mode for payment sessions
  */
-export type DisplayMode = 'popup' | 'iframe' | 'redirect';
+export type DisplayMode = "popup" | "iframe" | "redirect";
 
 /**
  * Payment completion data
@@ -37,7 +37,7 @@ export interface QuentliConfig {
 }
 
 /**
- * Base options shared across all display modes
+ * Base options shared across display modes that need callbacks
  */
 interface BasePaymentSessionOptions {
   /**
@@ -48,7 +48,7 @@ interface BasePaymentSessionOptions {
   /**
    * Payment session credentials
    */
-  session: QuentliSession;
+  session: QuentliAuthSession;
 
   /**
    * Callback invoked when payment is completed successfully
@@ -67,10 +67,9 @@ interface BasePaymentSessionOptions {
 }
 
 /**
- * Options for popup display mode
+ * Options for displayPopup method
  */
-export interface PopupPaymentSessionOptions extends BasePaymentSessionOptions {
-  displayMode: 'popup';
+export interface DisplayPopupOptions extends BasePaymentSessionOptions {
   /**
    * Popup window width in pixels
    * @default 500
@@ -88,10 +87,9 @@ export interface PopupPaymentSessionOptions extends BasePaymentSessionOptions {
 }
 
 /**
- * Options for iframe display mode
+ * Options for displayEmbedded method
  */
-export interface IframePaymentSessionOptions extends BasePaymentSessionOptions {
-  displayMode: 'iframe';
+export interface DisplayEmbeddedOptions extends BasePaymentSessionOptions {
   /**
    * Target element to append iframe to
    */
@@ -118,10 +116,9 @@ export interface IframePaymentSessionOptions extends BasePaymentSessionOptions {
 }
 
 /**
- * Options for redirect display mode
+ * Options for displayPage method
  */
-export interface RedirectPaymentSessionOptions {
-  displayMode: 'redirect';
+export interface DisplayPageOptions {
   /**
    * Payment session URL from Quentli API
    */
@@ -129,7 +126,37 @@ export interface RedirectPaymentSessionOptions {
 }
 
 /**
- * Union type for all payment session options
+ * @deprecated Use DisplayPopupOptions, DisplayEmbeddedOptions, or DisplayPageOptions instead
+ */
+export interface PopupPaymentSessionOptions extends BasePaymentSessionOptions {
+  displayMode: "popup";
+  width?: number;
+  height?: number;
+  windowName?: string;
+}
+
+/**
+ * @deprecated Use DisplayEmbeddedOptions instead
+ */
+export interface IframePaymentSessionOptions extends BasePaymentSessionOptions {
+  displayMode: "iframe";
+  target: HTMLElement;
+  width?: string;
+  height?: string;
+  className?: string;
+  allow?: string;
+}
+
+/**
+ * @deprecated Use DisplayPageOptions instead
+ */
+export interface RedirectPaymentSessionOptions {
+  displayMode: "redirect";
+  url: string;
+}
+
+/**
+ * @deprecated Use the specific methods in paymentSessions namespace instead
  */
 export type InitiatePaymentSessionOptions =
   | PopupPaymentSessionOptions
@@ -139,7 +166,7 @@ export type InitiatePaymentSessionOptions =
 /**
  * Internal message types for postMessage communication
  */
-export type QuentliMessageType = 'READY' | 'INIT' | 'PAYMENT_COMPLETED';
+export type QuentliMessageType = "READY" | "INIT" | "PAYMENT_COMPLETED";
 
 /**
  * Message structure for postMessage communication
@@ -151,4 +178,3 @@ export interface QuentliMessage {
   csrfToken?: string;
   [key: string]: unknown;
 }
-

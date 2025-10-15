@@ -8,14 +8,18 @@
  * @packageDocumentation
  */
 
-export { Quentli } from './Quentli';
+export { Quentli, PaymentSessions } from './Quentli';
 
 export type {
   QuentliConfig,
-  QuentliSession,
+  QuentliAuthSession as QuentliSession,
   PaymentStatus,
   DisplayMode,
   PaymentCompletionData,
+  DisplayPopupOptions,
+  DisplayEmbeddedOptions,
+  DisplayPageOptions,
+  // Deprecated types (kept for backwards compatibility)
   InitiatePaymentSessionOptions,
   PopupPaymentSessionOptions,
   IframePaymentSessionOptions,

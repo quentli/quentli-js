@@ -33,9 +33,8 @@ const session = await fetch('/api/payment-session', {
   body: JSON.stringify({ amount: 1000 })
 }).then(r => r.json());
 
-// Initiate payment (popup mode)
-await quentli.initiatePaymentSession({
-  displayMode: 'popup',
+// Display payment in a popup window
+await quentli.paymentSessions.displayPopup({
   url: session.url,
   session: {
     accessToken: session.session.accessToken,
@@ -63,39 +62,40 @@ quentli.destroy();
 Opens payment in a centered popup window.
 
 ```typescript
-await quentli.initiatePaymentSession({
-  displayMode: 'popup',
+await quentli.paymentSessions.displayPopup({
   url: session.url,
   session: session.session,
   onComplete: (data) => { /* ... */ },
+  onCancel: () => { /* ... */ },
+  onError: (error) => { /* ... */ },
   width: 500,  // Optional
   height: 700  // Optional
 });
 ```
 
-### Iframe
+### Embedded (Iframe)
 
 Embeds payment directly in your page.
 
 ```typescript
-await quentli.initiatePaymentSession({
-  displayMode: 'iframe',
+const iframe = await quentli.paymentSessions.displayEmbedded({
   url: session.url,
   session: session.session,
   target: document.getElementById('payment-container'),
   onComplete: (data) => { /* ... */ },
+  onCancel: () => { /* ... */ },
+  onError: (error) => { /* ... */ },
   width: '100%',   // Optional
   height: '600px'  // Optional
 });
 ```
 
-### Redirect
+### Page Redirect
 
 Full page redirect to hosted checkout.
 
 ```typescript
-quentli.initiatePaymentSession({
-  displayMode: 'redirect',
+quentli.paymentSessions.displayPage({
   url: session.url
 });
 ```
@@ -111,33 +111,56 @@ new Quentli(config?: QuentliConfig)
 **Options:**
 - `debug?: boolean` - Enable debug logging
 
+### Properties
+
+#### `quentli.paymentSessions`
+
+Access the payment session display methods namespace.
+
 ### Methods
 
-#### `initiatePaymentSession(options)`
+#### `paymentSessions.displayPopup(options)`
 
-Initiates a payment session.
+Display payment session in a popup window.
 
-**Common Options:**
-- `displayMode: 'popup' | 'iframe' | 'redirect'` - Display mode
+**Options:**
 - `url: string` - Payment session URL from backend
 - `session: QuentliSession` - Session credentials (accessToken, csrfToken)
 - `onComplete?: (data) => void` - Completion callback
 - `onCancel?: () => void` - Cancellation callback
 - `onError?: (error) => void` - Error callback
-
-**Popup Options:**
 - `width?: number` - Window width (default: 500)
 - `height?: number` - Window height (default: 700)
 - `windowName?: string` - Window name
 
-**Iframe Options:**
+**Returns:** `Promise<void>`
+
+#### `paymentSessions.displayEmbedded(options)`
+
+Display payment session embedded in an iframe.
+
+**Options:**
+- `url: string` - Payment session URL from backend
+- `session: QuentliSession` - Session credentials (accessToken, csrfToken)
 - `target: HTMLElement` - Container element
+- `onComplete?: (data) => void` - Completion callback
+- `onCancel?: () => void` - Cancellation callback
+- `onError?: (error) => void` - Error callback
 - `width?: string` - Iframe width (default: '100%')
 - `height?: string` - Iframe height (default: '600px')
 - `className?: string` - CSS class name
 - `allow?: string` - iframe allow attribute (default: 'payment')
 
-**Returns:** `Promise<HTMLIFrameElement | void>`
+**Returns:** `Promise<HTMLIFrameElement>`
+
+#### `paymentSessions.displayPage(options)`
+
+Redirect to payment session page.
+
+**Options:**
+- `url: string` - Payment session URL from backend
+
+**Returns:** `void`
 
 #### `destroy()`
 
@@ -154,8 +177,11 @@ Full type definitions included:
 ```typescript
 import type {
   Quentli,
+  PaymentSessions,
   QuentliConfig,
-  InitiatePaymentSessionOptions,
+  DisplayPopupOptions,
+  DisplayEmbeddedOptions,
+  DisplayPageOptions,
   PaymentCompletionData,
   PaymentStatus
 } from '@quentli/js';
