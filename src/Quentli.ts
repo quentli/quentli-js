@@ -290,15 +290,15 @@ export class Quentli {
         paymentSessionId: message.paymentSessionId as string | undefined,
         ...message,
       });
-
-      // Close popup window if it is open
-      if (this.popupWindow && !this.popupWindow.closed) {
-        this.popupWindow.close();
-        this.popupWindow = null;
-      }
+      
+      // Clean up all resources
+      this.cleanup();
       
     } else if (status === "CANCELED") {
       callbacks.onCancel?.();
+      
+      // Clean up all resources
+      this.cleanup();
     }
   }
 
@@ -533,6 +533,12 @@ export class Quentli {
       this.messageChannel = null;
     }
 
+    // Remove message listener
+    if (this.messageHandler) {
+      window.removeEventListener("message", this.messageHandler);
+      this.messageHandler = null;
+    }
+
     // Clear auth session
     this.authSession = null;
 
@@ -552,12 +558,6 @@ export class Quentli {
     this.logger.log("Destroying Quentli instance");
 
     this.cleanup();
-
-    // Remove message listener
-    if (this.messageHandler) {
-      window.removeEventListener("message", this.messageHandler);
-      this.messageHandler = null;
-    }
 
     this.isDestroyed = true;
   }
