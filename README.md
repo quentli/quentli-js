@@ -225,6 +225,12 @@ Requires MessageChannel API, ES2020, and postMessage support.
 
 MIT © Quentli
 
+## Contributing
+
+We welcome contributions! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
+
+This project uses [semantic-release](https://semantic-release.gitbook.io/) for automated versioning and publishing. Please use [Conventional Commits](https://www.conventionalcommits.org/) format for your commit messages.
+
 ## Links
 
 - [Documentation](https://docs.quentli.com)
