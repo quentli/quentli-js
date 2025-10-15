@@ -264,7 +264,6 @@ export class Quentli {
   private messageHandler: ((event: MessageEvent) => void) | null = null;
   private popupCheckInterval: number | null = null;
   private authSession: QuentliAuthSession | null = null;
-  private expectedOrigin: string | null = null;
   private logger: Logger;
   private isDestroyed = false;
   private _paymentSessions: PaymentSessions;
@@ -325,18 +324,6 @@ export class Quentli {
     const sessionName = this.sessionType === 'payment' ? 'payment' : 'setup';
     this.logger.log(`Initiating ${sessionName} session in ${options.displayMode} mode`);
 
-    // Extract and store expected origin from the URL
-    try {
-      const urlObj = new URL(options.url);
-      this.expectedOrigin = urlObj.origin;
-      this.logger.log("Expected origin set to:", this.expectedOrigin);
-    } catch (error) {
-      const err = new Error("Invalid URL provided");
-      this.logger.error("Failed to parse URL:", error);
-      options.onError?.(err);
-      throw err;
-    }
-
     // Store session for later use
     this.authSession = options.session;
 
@@ -368,15 +355,6 @@ export class Quentli {
    */
   private setupMessageListener(callbacks: SessionCallbacks): void {
     this.messageHandler = (event: MessageEvent) => {
-      // Validate origin matches the expected checkout URL origin
-      if (this.expectedOrigin && event.origin !== this.expectedOrigin) {
-        this.logger.warn(
-          "Received message from unexpected origin:",
-          event.origin
-        );
-        return;
-      }
-
       const message = event.data as QuentliMessage;
 
       if (!message || !message.type) {
@@ -664,9 +642,6 @@ export class Quentli {
 
     // Clear auth session
     this.authSession = null;
-
-    // Clear expected origin
-    this.expectedOrigin = null;
 
     // Clear session type
     this.sessionType = null;
