@@ -1,23 +1,22 @@
 # Changelog
 
-All notable changes to this project will be documented in this file.
+All releases and their notes are available on the [GitHub Releases page](https://github.com/quentli/quentli-js/releases).
 
-This project uses [semantic-release](https://github.com/semantic-release/semantic-release) for automated versioning and changelog generation based on [Conventional Commits](https://www.conventionalcommits.org/).
+This project uses [semantic-release](https://github.com/semantic-release/semantic-release) for automated versioning and releases based on [Conventional Commits](https://www.conventionalcommits.org/).
 
-## [0.3.1](https://github.com/quentli/quentli-js/releases/tag/v0.3.1) - Current Version
+## Getting Release Information
 
-Current stable release of @quentli/js.
+To check the latest version:
 
-### Features
+```bash
+npm view @quentli/js version
+```
 
-- Secure credential transfer using MessageChannel API
-- Multiple display modes: popup, iframe, and redirect
-- Framework agnostic - works with any JavaScript framework
-- Zero dependencies
-- Full TypeScript support
-- Automatic origin validation
+To see all versions:
 
----
+```bash
+npm view @quentli/js versions
+```
 
-**Note:** Starting from the next release, this changelog will be automatically updated by semantic-release based on commit messages.
+To view detailed release notes, visit the [Releases page](https://github.com/quentli/quentli-js/releases).
 

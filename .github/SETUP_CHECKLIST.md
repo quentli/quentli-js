@@ -113,10 +113,12 @@ This will show you what would happen without actually publishing.
    - Check logs for any errors
 
 3. Verify the release:
-   - [ ] New version created in npm: `npm view @quentli/js version`
+   - [ ] New version published to npm: `npm view @quentli/js version`
    - [ ] GitHub release created: Check **Releases** tab
-   - [ ] CHANGELOG.md updated in the repository
    - [ ] Git tag created: `git fetch --tags && git tag -l`
+   - [ ] Release notes visible in GitHub Releases
+
+**Note:** The version in the repository's `package.json` will remain `0.0.0-development`. This is intentional per [semantic-release best practices](https://semantic-release.gitbook.io/semantic-release/support/faq).
 
 ## ✅ Files Created/Modified
 
@@ -130,9 +132,10 @@ The following files were created or modified:
 - `.releaserc.json` - Semantic-release configuration
 
 ### Modified Files
-- `package.json` - Added semantic-release dependencies
+- `package.json` - Added semantic-release dependencies, version set to `0.0.0-development`
 - `CONTRIBUTING.md` - Updated with conventional commit guidelines
 - `README.md` - Added contributing section
+- `CHANGELOG.md` - Simplified to link to GitHub Releases
 
 ## ✅ Commit Message Guidelines
 

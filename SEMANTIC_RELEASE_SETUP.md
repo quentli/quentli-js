@@ -124,16 +124,17 @@ Semantic Release:
   - Analyzes commits since last release
   - Determines version bump
   - Generates release notes from commits
-  - Updates CHANGELOG.md
-  - Bumps version in package.json
-  - Publishes to npm
+  - Updates version in package.json (for published package only)
+  - Publishes to npm with correct version
   - Creates GitHub release with notes
-  - Commits changes back (tagged [skip ci])
+  - Creates git tag for the release
          ↓
 ✅ Package published to npm
-✅ GitHub release created
-✅ CHANGELOG.md updated
+✅ GitHub release created with full notes
+✅ Git tag created
 ```
+
+**Important:** Following [semantic-release best practices](https://semantic-release.gitbook.io/semantic-release/support/faq), the version in the repository's `package.json` remains `0.0.0-development`. Only the published npm package contains the actual version number.
 
 ## Next Steps
 
@@ -199,8 +200,9 @@ After merging to main, verify:
 - ✅ GitHub Actions "Release" workflow completes successfully
 - ✅ New version appears on npm: `npm view @quentli/js version`
 - ✅ GitHub release is created in the "Releases" tab
-- ✅ CHANGELOG.md is updated in the repository
 - ✅ Git tag is created: `git fetch --tags && git tag -l`
+
+**Note:** The `package.json` version in the repository will remain `0.0.0-development` - this is correct!
 
 ## Branch Strategy
 
@@ -290,15 +292,34 @@ For questions or issues with semantic-release:
 ✅ **Automated Versioning** - Versions determined by commit messages
 ✅ **Automated Publishing** - Publishes to npm on merge to main
 ✅ **Automated Releases** - Creates GitHub releases with notes
-✅ **Automated Changelog** - CHANGELOG.md updated automatically
+✅ **Simplified Changelog** - Links to GitHub Releases (no file commits)
 ✅ **CI/CD Pipeline** - PR checks and release automation
 ✅ **Pre-release Support** - Beta releases from beta branch
+✅ **Best Practices** - Follows semantic-release recommendations
 ✅ **Comprehensive Documentation** - Complete guides and examples
 
-**Current Version:** 0.3.1
-**Next Version:** Will be determined by your first semantic-release run based on commits since v0.3.1
+**Repository Version:** `0.0.0-development` (placeholder, per semantic-release best practices)
+**Published Version:** Check with `npm view @quentli/js version`
 
 ---
 
-**Note:** Once you merge the setup changes and configure the NPM token, semantic-release will analyze all commits since the last release (v0.3.1) and determine the appropriate version bump for the first automated release.
+## Why `0.0.0-development`?
+
+Per [semantic-release FAQ](https://semantic-release.gitbook.io/semantic-release/support/faq), committing version updates back to the repository adds unnecessary complexity:
+
+- Branch protection complications
+- Pre-commit hook conflicts  
+- Potential version sync issues
+
+Instead, semantic-release:
+- Tracks versions via git tags
+- Updates version only in the published npm package
+- Uses `0.0.0-development` in the repo to indicate semantic-release management
+
+**To check the actual version:**
+```bash
+npm view @quentli/js version
+```
+
+Or visit the [Releases page](https://github.com/quentli/quentli-js/releases).
 

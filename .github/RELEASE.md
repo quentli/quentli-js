@@ -9,11 +9,12 @@ When code is merged to the `main` branch, semantic-release will:
 1. **Analyze commits** since the last release using conventional commits
 2. **Determine the version bump** (major, minor, or patch)
 3. **Generate release notes** from commit messages
-4. **Update CHANGELOG.md** with new changes
-5. **Bump version** in package.json
-6. **Publish to npm** with the new version
-7. **Create a GitHub release** with release notes
-8. **Commit changes** back to the repository
+4. **Update version** in package.json (only in the published package)
+5. **Publish to npm** with the new version
+6. **Create a GitHub release** with release notes
+7. **Create a git tag** to track the release
+
+**Note:** Per [semantic-release best practices](https://semantic-release.gitbook.io/semantic-release/support/faq), the version in the repository's `package.json` remains as `0.0.0-development` to indicate it's managed by semantic-release. Only the published npm package contains the actual version number.
 
 ## Commit Message Format
 
@@ -154,12 +155,22 @@ Check the GitHub Actions logs:
 - Look for npm authentication errors (check NPM_TOKEN)
 - Look for permission errors (check GitHub permissions)
 
-### Version conflict
+### How do I check the current version?
 
-If the version in package.json doesn't match npm:
-- semantic-release handles versioning automatically
-- Don't manually edit version in package.json
-- Let semantic-release manage the version
+The version in the repository (`0.0.0-development`) is a placeholder. To check the actual published version:
+
+```bash
+# Check latest version
+npm view @quentli/js version
+
+# Check all available versions
+npm view @quentli/js versions
+
+# Check dist-tags
+npm dist-tags ls @quentli/js
+```
+
+Or visit the [GitHub Releases page](https://github.com/quentli/quentli-js/releases)
 
 ## Best Practices
 
@@ -167,7 +178,8 @@ If the version in package.json doesn't match npm:
 2. **Use conventional commits** - Required for automated versioning
 3. **One logical change per commit** - Makes releases easier to understand
 4. **Test before merging** - CI workflow ensures quality
-5. **Review generated CHANGELOG** - Verify release notes are accurate
+5. **Check GitHub Releases** - All release notes are published there
+6. **Don't manually edit version** - The `0.0.0-development` in package.json is intentional
 
 ## References
 

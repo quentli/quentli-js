@@ -88,7 +88,7 @@ docs: update README with new examples
 perf: optimize message channel cleanup
 ```
 
-**Important:** Version numbers and CHANGELOG.md are automatically managed by semantic-release. Do not manually update them.
+**Important:** Versioning is automatically managed by semantic-release. Do not manually update the version in `package.json` - it intentionally stays at `0.0.0-development` to indicate it's managed by semantic-release. See the [semantic-release FAQ](https://semantic-release.gitbook.io/semantic-release/support/faq) for details.
 
 ## Pull Request Process
 
@@ -106,9 +106,11 @@ perf: optimize message channel cleanup
 Once your PR is merged to `main`, semantic-release will automatically:
 - Analyze your commits to determine the version bump
 - Generate release notes
-- Update CHANGELOG.md
-- Publish to npm
-- Create a GitHub release
+- Publish to npm with the new version
+- Create a GitHub release with detailed notes
+- Create a git tag for the release
+
+All release notes are published on the [GitHub Releases page](https://github.com/quentli/quentli-js/releases).
 
 ## Feature Requests
 
