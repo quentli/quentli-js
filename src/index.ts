@@ -19,11 +19,6 @@ export type {
   DisplayPopupOptions,
   DisplayEmbeddedOptions,
   DisplayPageOptions,
-  // Deprecated types (kept for backwards compatibility)
-  InitiatePaymentSessionOptions,
-  PopupPaymentSessionOptions,
-  IframePaymentSessionOptions,
-  RedirectPaymentSessionOptions,
   QuentliMessageType,
   QuentliMessage,
 } from './types';

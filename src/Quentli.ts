@@ -1,9 +1,5 @@
 import type {
   QuentliConfig,
-  InitiatePaymentSessionOptions,
-  PopupPaymentSessionOptions,
-  IframePaymentSessionOptions,
-  RedirectPaymentSessionOptions,
   DisplayPopupOptions,
   DisplayEmbeddedOptions,
   DisplayPageOptions,
@@ -259,9 +255,7 @@ export class Quentli {
     const status = message.status as PaymentStatus;
 
     if (status === "COMPLETE") {
-      if (callbacks.onComplete) {
-        this.logger.log("Calling onComplete callback");
-      } else {
+      if (!callbacks.onComplete) {
         this.logger.log("No onComplete callback provided");
       }
       callbacks.onComplete?.({
@@ -269,65 +263,18 @@ export class Quentli {
         paymentSessionId: message.paymentSessionId as string | undefined,
         ...message,
       });
+
+      // Close popup window if it is open
+      if (this.popupWindow && !this.popupWindow.closed) {
+        this.popupWindow.close();
+        this.popupWindow = null;
+      }
+      
     } else if (status === "CANCELED") {
       callbacks.onCancel?.();
     }
   }
 
-  /**
-   * @deprecated Use quentli.paymentSessions.displayPopup(), displayEmbedded(), or displayPage() instead
-   *
-   * Initiate a payment session with the specified display mode
-   */
-  async initiatePaymentSession(
-    options: InitiatePaymentSessionOptions
-  ): Promise<HTMLIFrameElement | void> {
-    if (this.isDestroyed) {
-      throw new Error("Quentli instance has been destroyed");
-    }
-
-    this.logger.log("Initiating payment session with options:", {
-      displayMode: options.displayMode,
-    });
-
-    // Handle redirect separately (no callbacks needed)
-    if (options.displayMode === "redirect") {
-      return this.handleRedirect(options);
-    }
-
-    // Extract and store expected origin from the payment URL
-    try {
-      const urlObj = new URL(options.url);
-      this.expectedOrigin = urlObj.origin;
-      this.logger.log("Expected origin set to:", this.expectedOrigin);
-    } catch (error) {
-      const err = new Error("Invalid payment URL provided");
-      this.logger.error("Failed to parse URL:", error);
-      options.onError?.(err);
-      throw err;
-    }
-
-    console.log("options", options);
-
-    // Prepare callbacks for this session
-    const callbacks = {
-      onComplete: options.onComplete,
-      onCancel: options.onCancel,
-      onError: options.onError,
-    };
-
-    // Set up message listener with callbacks
-    this.setupMessageListener(callbacks);
-
-    // Store session for later use
-    this.authSession = options.session;
-
-    if (options.displayMode === "popup") {
-      return this.handlePopup(options, callbacks);
-    } else if (options.displayMode === "iframe") {
-      return this.handleIframe(options, callbacks);
-    }
-  }
 
   /**
    * @internal
@@ -426,7 +373,7 @@ export class Quentli {
    * Handle popup display mode
    */
   private async handlePopup(
-    options: PopupPaymentSessionOptions | DisplayPopupOptions,
+    options: DisplayPopupOptions,
     callbacks: {
       onComplete?: (data: PaymentCompletionData) => void;
       onCancel?: () => void;
@@ -476,7 +423,7 @@ export class Quentli {
    * Handle iframe display mode
    */
   private async handleIframe(
-    options: IframePaymentSessionOptions | DisplayEmbeddedOptions,
+    options: DisplayEmbeddedOptions,
     callbacks: {
       onComplete?: (data: PaymentCompletionData) => void;
       onCancel?: () => void;
@@ -519,7 +466,7 @@ export class Quentli {
    * Handle redirect display mode
    */
   private handleRedirect(
-    options: RedirectPaymentSessionOptions | DisplayPageOptions
+    options: DisplayPageOptions
   ): void {
     this.logger.log("Redirecting to:", options.url);
     window.location.href = options.url;
