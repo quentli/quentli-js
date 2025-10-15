@@ -507,8 +507,11 @@ export class Quentli {
     const features = generateWindowFeatures(width, height, left, top);
 
     try {
+      // Append parent_origin to URL for security
+      const urlWithOrigin = this.appendParentOrigin(options.url);
+      
       this.popupWindow = window.open(
-        options.url,
+        urlWithOrigin,
         options.windowName || `quentli_${this.sessionType}_session`,
         features
       );
@@ -549,7 +552,9 @@ export class Quentli {
   ): Promise<HTMLIFrameElement> {
     try {
       const iframe = document.createElement("iframe");
-      iframe.src = options.url;
+      
+      // Append parent_origin to URL for security
+      iframe.src = this.appendParentOrigin(options.url);
       iframe.style.border = "none";
       iframe.style.width = options.width || "100%";
       iframe.style.height = options.height || "600px";
@@ -602,6 +607,28 @@ export class Quentli {
 
     this.logger.log("Redirecting to page");
     return this.handleRedirect(options);
+  }
+
+  /**
+   * Append parent_origin query parameter to URL for secure message validation
+   * @internal
+   */
+  private appendParentOrigin(url: string): string {
+    try {
+      const parentOrigin = window.location.origin;
+      const urlObj = new URL(url);
+      
+      // Only add if not already present
+      if (!urlObj.searchParams.has('parent_origin')) {
+        urlObj.searchParams.set('parent_origin', parentOrigin);
+        this.logger.log(`Added parent_origin=${parentOrigin} to URL`);
+      }
+      
+      return urlObj.toString();
+    } catch (error) {
+      this.logger.warn("Failed to append parent_origin to URL:", error);
+      return url; // Return original URL if parsing fails
+    }
   }
 
   /**
