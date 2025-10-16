@@ -17,7 +17,6 @@ Official JavaScript SDK for Quentli Payment and Setup Sessions. Secure and simpl
 - Zero dependencies
 - Full TypeScript support
 - Secure MessageChannel communication
-- Automatic origin validation
 
 ## Installation
 
